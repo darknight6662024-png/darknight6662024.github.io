@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secure Access System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#00ff88">
+
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff88;
+      font-family: monospace;
+    }
+
+    #loginScreen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    input, button {
+      background: black;
+      border: 1px solid #00ff88;
+      color: #00ff88;
+      padding: 10px;
+      margin: 5px;
+      font-family: monospace;
+    }
+
+    #app {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .menu {
+      display: flex;
+      border-bottom: 1px solid #00ff88;
+      padding: 5px;
+    }
+
+    .menu div {
+      margin-right: 20px;
+      cursor: pointer;
+    }
+
+    .content {
+      flex: 1;
+      display: none;
+      padding: 10px;
+    }
+
+    .active { display: block; }
+
+    #terminal, #network {
+      white-space: pre-wrap;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    #map {
+      position: relative;
+      height: 100%;
+      background: radial-gradient(circle, #001a10, black);
+    }
+
+    .node {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #00ff88;
+      border-radius: 50%;
+    }
+
+    #alertBox {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      color: red;
+      display: none;
+      font-weight: bold;
+    }
+
+    #installBtn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <h2>SECURE ACCESS</h2>
+  <input id="userInput" placeholder="Username">
+  <input id="passInput" type="password" placeholder="Password">
+  <button id="loginBtn">LOGIN</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="menu">
+    <div data-tab="terminalView">SYSTEM</div>
+    <div data-tab="networkView">NETWORK</div>
+    <div data-tab="mapView">MAP</div>
+    <div data-tab="statsView">METRICS</div>
+  </div>
+
+  <div id="terminalView" class="content active"><div id="terminal"></div></div>
+  <div id="networkView" class="content"><div id="network"></div></div>
+  <div id="mapView" class="content"><div id="map"></div></div>
+  <div id="statsView" class="content"><div id="stats"></div></div>
+</div>
+
+<div id="alertBox">⚠ THREAT DETECTED</div>
+<button id="installBtn">Install App</button>
+
+<script>
+// ELEMENTS
+const loginScreen = document.getElementById("loginScreen");
+const app = document.getElementById("app");
+const loginBtn = document.getElementById("loginBtn");
+
+const terminal = document.getElementById("terminal");
+const network = document.getElementById("network");
+const map = document.getElementById("map");
+const stats = document.getElementById("stats");
+const alertBox = document.getElementById("alertBox");
+
+// LOGIN
+loginBtn.onclick = () => {
+  loginScreen.style.display = "none";
+  app.style.display = "flex";
+  startSystem();
+};
+
+// MENU SWITCH
+document.querySelectorAll(".menu div").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  };
+});
+
+// HELPERS
+function r(n){ return Math.floor(Math.random()*n); }
+function randIP(){
+  return `${r(255)}.${r(255)}.${r(255)}.${r(255)}`;
+}
+
+// START SYSTEM
+function startSystem(){
+  terminal.innerHTML += "Initializing session...\n";
+  terminal.innerHTML += "Loading profile...\n";
+  terminal.innerHTML += "Access level: ADMIN\n";
+  terminal.innerHTML += "Welcome Nadia\n\n";
+
+  setInterval(systemLog, 800);
+  setInterval(networkLog, 300);
+  setInterval(updateStats, 1000);
+  setInterval(spawnNode, 500);
+}
+
+// SYSTEM LOG
+function systemLog(){
+  const msgs = [
+    "Auth token verified",
+    "Node synced",
+    "Packet received",
+    "Encryption stable"
+  ];
+  terminal.innerHTML += `[${new Date().toLocaleTimeString()}] ${msgs[r(msgs.length)]}\n`;
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+// NETWORK
+function networkLog(){
+  network.innerHTML += `${randIP()} → ${randIP()}\n`;
+  network.scrollTop = network.scrollHeight;
+}
+
+// MAP
+function spawnNode(){
+  const n = document.createElement("div");
+  n.className = "node";
+  n.style.top = Math.random()*95 + "%";
+  n.style.left = Math.random()*95 + "%";
+  map.appendChild(n);
+  setTimeout(()=>n.remove(),3000);
+}
+
+// STATS
+function updateStats(){
+  stats.innerHTML = `
+    CPU: ${r(100)}%<br>
+    MEMORY: ${r(100)}%<br>
+    LATENCY: ${r(150)}ms
+  `;
+}
+
+// THREATS
+const threats = ["BREACH","MALWARE","INTRUSION","UNAUTHORIZED ACCESS"];
+
+setInterval(()=>{
+  if(Math.random() > 0.7){
+    const t = threats[r(threats.length)];
+    alertBox.textContent = "⚠ " + t;
+    alertBox.style.display = "block";
+
+    terminal.innerHTML += `[${new Date().toLocaleTimeString()}] ⚠ ${t}\n`;
+
+    setTimeout(()=>alertBox.style.display="none",2000);
+  }
+},2000);
+
+// INSTALL PROMPT
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "block";
+});
+
+installBtn.onclick = async ()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+  }
+};
+
+// SIMPLE SERVICE WORKER
+if("serviceWorker" in navigator){
+  const sw = new Blob([`self.addEventListener('fetch',()=>{});`], {type:'text/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(sw));
+}
+</script>
+
+</body>
+</html>
